@@ -25,7 +25,7 @@ jobs:
           test -f CosmicPlanetMaker_Android_Project.zip
           mkdir project
           unzip -q CosmicPlanetMaker_Android_Project.zip -d project
-          cp -R project/. .
+          cp -R project/CosmicPlanetMaker/. .
       - name: Build debug APK
         run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
