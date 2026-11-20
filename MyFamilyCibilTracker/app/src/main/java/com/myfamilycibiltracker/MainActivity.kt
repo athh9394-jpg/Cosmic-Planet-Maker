@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,7 +34,15 @@ data class ScoreEntry(val member: String, val score: Int, val date: Long, val no
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { MaterialTheme { TrackerApp() } }
+        setContent {
+            val colors = darkColorScheme(
+                primary = Color(0xFF55D6BE), onPrimary = Color(0xFF06221F),
+                secondary = Color(0xFF8EA8FF), background = Color(0xFF081321),
+                surface = Color(0xFF122238), onSurface = Color(0xFFEAF2FF),
+                onSurfaceVariant = Color(0xFF9EB0C8)
+            )
+            MaterialTheme(colorScheme = colors) { TrackerApp() }
+        }
     }
 }
 
@@ -47,17 +56,20 @@ fun TrackerApp() {
     var history by remember { mutableStateOf(readHistory(prefs)) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Surface(color = MaterialTheme.colorScheme.primary) {
-                Column(Modifier.fillMaxWidth().padding(18.dp)) {
+            Surface(color = Color(0xFF10243B)) {
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp)) {
+                    Text("YOUR PERSONAL CREDIT SPACE", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                    Spacer(Modifier.height(8.dp))
                     Text("My Family CIBIL Tracker", color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                    Text("Free • Personal & Family", color = MaterialTheme.colorScheme.onPrimary)
+                        fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                    Text("Family credit health at a glance", color = Color(0xFF9EB0C8), fontSize = 13.sp)
                 }
             }
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = Color(0xFF102238), contentColor = MaterialTheme.colorScheme.primary) {
                 listOf("Home", "Family", "History", "Loans", "EMI").forEach { item ->
                     NavigationBarItem(
                         selected = page == item, onClick = { page = item },
@@ -74,13 +86,14 @@ fun TrackerApp() {
         ) {
             when (page) {
                 "Home" -> {
-                    Text("Family dashboard", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text("Good to see you", fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                    Text("Your family credit overview", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         SummaryCard("Family profiles", members.size.toString(), Modifier.weight(1f))
                         SummaryCard("Tracked loans", loans.size.toString(), Modifier.weight(1f))
                     }
                     val latest = history.groupBy { it.member }.mapValues { it.value.maxByOrNull { e -> e.date } }
-                    Text("Latest credit scores", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text("CREDIT SCORE OVERVIEW", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.5.sp)
                     if (members.isEmpty()) Text("Family tab se pehla profile add karein.")
                     members.forEach { member ->
                         val entry = latest[member.name]
@@ -124,17 +137,17 @@ fun TrackerApp() {
 
 @Composable
 fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, shape = RoundedCornerShape(16.dp)) {
+    Card(modifier, shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(Modifier.padding(14.dp)) {
-            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            Text(value, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
     }
 }
 
 @Composable
 fun MemberCard(member: Member, date: Long?) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(member.name, fontWeight = FontWeight.SemiBold)
