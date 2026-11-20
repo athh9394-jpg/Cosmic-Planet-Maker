@@ -91,7 +91,6 @@ fun TrackerApp() {
                             color = Color(0xFF278477), fontSize = 9.sp, fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp)
                     }
-                    }
                 }
             }
         },
