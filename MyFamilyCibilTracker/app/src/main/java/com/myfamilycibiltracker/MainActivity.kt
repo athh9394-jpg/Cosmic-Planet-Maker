@@ -35,13 +35,26 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val colors = darkColorScheme(
-                primary = Color(0xFF55D6BE), onPrimary = Color(0xFF06221F),
-                secondary = Color(0xFF8EA8FF), background = Color(0xFF081321),
-                surface = Color(0xFF122238), onSurface = Color(0xFFEAF2FF),
-                onSurfaceVariant = Color(0xFF9EB0C8)
+            val colors = lightColorScheme(
+                primary = Color(0xFF244A78), onPrimary = Color.White,
+                primaryContainer = Color(0xFFE5EEF9), onPrimaryContainer = Color(0xFF173454),
+                secondary = Color(0xFF278477), onSecondary = Color.White,
+                secondaryContainer = Color(0xFFDDF3ED), onSecondaryContainer = Color(0xFF14574F),
+                tertiary = Color(0xFFD18A42), background = Color(0xFFF4F6FA),
+                surface = Color.White, onSurface = Color(0xFF18283B),
+                surfaceVariant = Color(0xFFEDF1F6), onSurfaceVariant = Color(0xFF68788B),
+                outline = Color(0xFFD7DFE8), error = Color(0xFFB94B4B)
             )
-            MaterialTheme(colorScheme = colors) { TrackerApp() }
+            MaterialTheme(
+                colorScheme = colors,
+                shapes = Shapes(
+                    extraSmall = RoundedCornerShape(8.dp),
+                    small = RoundedCornerShape(12.dp),
+                    medium = RoundedCornerShape(18.dp),
+                    large = RoundedCornerShape(24.dp),
+                    extraLarge = RoundedCornerShape(28.dp)
+                )
+            ) { TrackerApp() }
         }
     }
 }
@@ -58,22 +71,30 @@ fun TrackerApp() {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            Surface(color = Color(0xFF10243B)) {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 22.dp)) {
-                    Text("YOUR PERSONAL CREDIT SPACE", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                    Spacer(Modifier.height(8.dp))
-                    Text("My Family CIBIL Tracker", color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                    Text("Family credit health at a glance", color = Color(0xFF9EB0C8), fontSize = 13.sp)
+            Surface(color = Color.White, shadowElevation = 1.dp) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 15.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFFE5EEF9)) {
+                        Text("C", Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                            color = Color(0xFF244A78), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    Column {
+                        Text("MY FAMILY", color = Color(0xFF278477), fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold, letterSpacing = 1.7.sp)
+                        Text("Credit Tracker", color = Color(0xFF18283B),
+                            fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         },
         bottomBar = {
-            NavigationBar(containerColor = Color(0xFF102238), contentColor = MaterialTheme.colorScheme.primary) {
+            NavigationBar(containerColor = Color.White, contentColor = MaterialTheme.colorScheme.primary,
+                tonalElevation = 8.dp) {
                 listOf("Home", "Family", "History", "Loans", "EMI").forEach { item ->
                     NavigationBarItem(
                         selected = page == item, onClick = { page = item },
-                        icon = { Text(when (item) { "Home" -> "⌂"; "Family" -> "♙"; "History" -> "↗"; "Loans" -> "▣"; else -> "₹" }) },
+                        icon = { Text(when (item) { "Home" -> "⌂"; "Family" -> "●"; "History" -> "↗"; "Loans" -> "▤"; else -> "₹" }, fontSize = 18.sp) },
                         label = { Text(item) }
                     )
                 }
@@ -81,27 +102,31 @@ fun TrackerApp() {
         }
     ) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             when (page) {
                 "Home" -> {
-                    Text("Good to see you", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                    Text("Your family credit overview", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        SummaryCard("Family profiles", members.size.toString(), Modifier.weight(1f))
-                        SummaryCard("Tracked loans", loans.size.toString(), Modifier.weight(1f))
+                    Text("Your credit, clearly.", fontSize = 27.sp, fontWeight = FontWeight.Bold, color = Color(0xFF18283B))
+                    Text("A simple view of your family's credit health", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SummaryCard("FAMILY MEMBERS", members.size.toString(), Modifier.weight(1f))
+                        SummaryCard("ACTIVE LOANS", loans.size.toString(), Modifier.weight(1f))
                     }
                     val latest = history.groupBy { it.member }.mapValues { it.value.maxByOrNull { e -> e.date } }
-                    Text("CREDIT SCORE OVERVIEW", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.5.sp)
+                    Text("CREDIT SCORE OVERVIEW", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color(0xFF68788B), letterSpacing = 1.4.sp)
                     if (members.isEmpty()) Text("Family tab se pehla profile add karein.")
                     members.forEach { member ->
                         val entry = latest[member.name]
                         MemberCard(member.copy(score = entry?.score ?: member.score), entry?.date)
                     }
-                    Button(onClick = { page = "Family" }, modifier = Modifier.fillMaxWidth()) { Text("Add family member / score") }
-                    OutlinedButton(onClick = { openCibil(context) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("Official CIBIL website par report check karein")
+                    Button(onClick = { page = "Family" }, modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp), contentPadding = PaddingValues(vertical = 15.dp)) {
+                        Text("＋  Add family member or score", fontWeight = FontWeight.SemiBold)
+                    }
+                    OutlinedButton(onClick = { openCibil(context) }, modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp), contentPadding = PaddingValues(vertical = 14.dp)) {
+                        Text("Check report on official CIBIL website")
                     }
                 }
                 "Family" -> FamilyPage(members, { name ->
@@ -137,24 +162,37 @@ fun TrackerApp() {
 
 @Composable
 fun SummaryCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier, shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Column(Modifier.padding(14.dp)) {
-            Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
-            Text(value, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+    Card(modifier, shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 17.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text(label, color = Color(0xFF748397), fontSize = 10.sp,
+                fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(value, fontSize = 31.sp, fontWeight = FontWeight.Bold, color = Color(0xFF244A78))
         }
     }
 }
 
 @Composable
 fun MemberCard(member: Member, date: Long?) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-        Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column {
-                Text(member.name, fontWeight = FontWeight.SemiBold)
-                Text(if (date == null) "No score saved yet" else "Updated: ${formatDate(date)}", fontSize = 12.sp)
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 17.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(member.name, fontWeight = FontWeight.SemiBold, color = Color(0xFF18283B), fontSize = 15.sp)
+                Text(if (date == null) "No score saved yet" else "Updated " + formatDate(date),
+                    fontSize = 11.sp, color = Color(0xFF748397))
             }
-            Text(if (member.score == 0) "—" else member.score.toString(),
-                fontSize = 23.sp, fontWeight = FontWeight.Bold)
+            Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                Text(if (member.score == 0) "—" else member.score.toString(),
+                    fontSize = 25.sp, fontWeight = FontWeight.Bold,
+                    color = if (member.score >= 750) Color(0xFF278477) else Color(0xFF244A78))
+                Text("CIBIL SCORE", fontSize = 9.sp, letterSpacing = 1.sp, color = Color(0xFF8794A5))
+            }
         }
     }
 }
