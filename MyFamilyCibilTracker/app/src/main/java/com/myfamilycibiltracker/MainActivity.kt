@@ -178,8 +178,8 @@ fun FamilyPage(members: List<Member>, onAdd: (String) -> Unit,
             modifier = Modifier.fillMaxWidth())
         Button(onClick = {
             val value = score.toIntOrNull()
-            if (selected.isNotBlank() && value in 300..900) {
-                onScore(selected, value!!, note.trim()); score = ""; note = ""
+            if (selected.isNotBlank() && value != null && value in 300..900) {
+                onScore(selected, value, note.trim()); score = ""; note = ""
             }
         }, modifier = Modifier.fillMaxWidth()) { Text("Save score update") }
     } else Text("Pehle ek family member add karein.")
@@ -266,8 +266,11 @@ fun EmiPage() {
     val p = principal.toDoubleOrNull() ?: 0.0
     val r = (rate.toDoubleOrNull() ?: 0.0) / 1200.0
     val n = months.toIntOrNull() ?: 0
-    val emi = if (p > 0 && n > 0) {
-        if (r == 0.0) p / n else p * r * (1 + r).pow(n) / ((1 + r).pow(n) - 1)
+    val emi = if (p > 0 && p.isFinite() && r >= 0 && r.isFinite() && n in 1..600) {
+        if (r == 0.0) p / n else {
+            val factor = (1 + r).pow(n)
+            if (factor.isFinite() && factor > 1.0) p * r * factor / (factor - 1.0) else 0.0
+        }
     } else 0.0
     Text("EMI calculator", fontSize = 22.sp, fontWeight = FontWeight.Bold)
     OutlinedTextField(principal, { principal = it }, label = { Text("Loan amount (₹)") },
