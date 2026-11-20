@@ -76,14 +76,21 @@ fun TrackerApp() {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(14.dp), color = Color(0xFFE5EEF9)) {
-                        Text("C", Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                        Text("₹", Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
                             color = Color(0xFF244A78), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
                     }
                     Column {
-                        Text("MY FAMILY", color = Color(0xFF278477), fontSize = 10.sp,
+                        Text("PERSONAL FINANCE", color = Color(0xFF278477), fontSize = 10.sp,
                             fontWeight = FontWeight.Bold, letterSpacing = 1.7.sp)
-                        Text("Credit Tracker", color = Color(0xFF18283B),
+                        Text("Credit health", color = Color(0xFF18283B),
                             fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Surface(shape = RoundedCornerShape(50), color = Color(0xFFEAF4F1)) {
+                        Text("PRIVATE", Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
+                            color = Color(0xFF278477), fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp)
+                    }
                     }
                 }
             }
@@ -107,14 +114,42 @@ fun TrackerApp() {
         ) {
             when (page) {
                 "Home" -> {
-                    Text("Your credit, clearly.", fontSize = 27.sp, fontWeight = FontWeight.Bold, color = Color(0xFF18283B))
-                    Text("A simple view of your family's credit health", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SummaryCard("FAMILY MEMBERS", members.size.toString(), Modifier.weight(1f))
-                        SummaryCard("ACTIVE LOANS", loans.size.toString(), Modifier.weight(1f))
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color(0xFF244A78),
+                        shadowElevation = 3.dp
+                    ) {
+                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Text("FAMILY CREDIT SNAPSHOT", color = Color(0xFFBFD5EF),
+                                fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                            Text("Your credit,\nall in one place.", color = Color.White,
+                                fontSize = 27.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold)
+                            Text("Track score updates, loans and monthly EMIs.", color = Color(0xFFE0EAF6),
+                                fontSize = 13.sp)
+                            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFF355D88)) {
+                                    Column(Modifier.padding(horizontal = 13.dp, vertical = 10.dp)) {
+                                        Text(members.size.toString(), color = Color.White,
+                                            fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                        Text("MEMBERS", color = Color(0xFFD3E1F1), fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    }
+                                }
+                                Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFF355D88)) {
+                                    Column(Modifier.padding(horizontal = 13.dp, vertical = 10.dp)) {
+                                        Text(loans.size.toString(), color = Color.White,
+                                            fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                        Text("ACTIVE LOANS", color = Color(0xFFD3E1F1), fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    }
+                                }
+                            }
+                        }
                     }
+                    Text("CREDIT SCORE OVERVIEW", fontWeight = FontWeight.Bold, fontSize = 11.sp,
+                        color = Color(0xFF68788B), letterSpacing = 1.4.sp)
                     val latest = history.groupBy { it.member }.mapValues { it.value.maxByOrNull { e -> e.date } }
-                    Text("CREDIT SCORE OVERVIEW", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color(0xFF68788B), letterSpacing = 1.4.sp)
                     if (members.isEmpty()) Text("Family tab se pehla profile add karein.")
                     members.forEach { member ->
                         val entry = latest[member.name]
@@ -204,6 +239,8 @@ fun FamilyPage(members: List<Member>, onAdd: (String) -> Unit,
     var selected by remember(members) { mutableStateOf(members.firstOrNull()?.name.orEmpty()) }
     var score by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
+    val parsedScore = score.toIntOrNull()
+    val scoreInvalid = score.isNotBlank() && (parsedScore == null || parsedScore !in 300..900)
     Text("Family profiles", fontSize = 22.sp, fontWeight = FontWeight.Bold)
     OutlinedTextField(name, { name = it }, label = { Text("Member name") }, modifier = Modifier.fillMaxWidth())
     Button(onClick = {
@@ -224,15 +261,16 @@ fun FamilyPage(members: List<Member>, onAdd: (String) -> Unit,
         }
         OutlinedTextField(score, { score = it.filter(Char::isDigit).take(3) },
             label = { Text("CIBIL score (300–900)") },
+            isError = scoreInvalid,
+            supportingText = { if (scoreInvalid) Text("Score 300 se 900 ke beech hona chahiye.") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
         OutlinedTextField(note, { note = it }, label = { Text("Note (optional, e.g. report checked)") },
             modifier = Modifier.fillMaxWidth())
-        Button(onClick = {
-            val value = score.toIntOrNull()
-            if (selected.isNotBlank() && value != null && value in 300..900) {
+        Button(enabled = selected.isNotBlank() && parsedScore != null && parsedScore in 300..900,
+            onClick = {
+                val value = parsedScore ?: return@Button
                 onScore(selected, value, note.trim()); score = ""; note = ""
-            }
-        }, modifier = Modifier.fillMaxWidth()) { Text("Save score update") }
+            }, modifier = Modifier.fillMaxWidth()) { Text("Save score update") }
     } else Text("Pehle ek family member add karein.")
     members.forEach { member ->
         Card(Modifier.fillMaxWidth()) {
@@ -341,7 +379,14 @@ fun EmiPage() {
 
 fun readMembers(p: android.content.SharedPreferences): List<Member> = try {
     val a = JSONArray(p.getString("members", "[]"))
-    (0 until a.length()).map { val o = a.getJSONObject(it); Member(o.getString("name"), o.optInt("score", 0)) }
+    (0 until a.length()).mapNotNull { i ->
+        runCatching {
+            val o = a.getJSONObject(i)
+            val name = o.optString("name", "").trim()
+            val score = o.optInt("score", 0)
+            if (name.isBlank() || score !in 0..900) null else Member(name, score)
+        }.getOrNull()
+    }.distinctBy { it.name.lowercase(Locale.ROOT) }
 } catch (_: Exception) { emptyList() }
 
 fun writeMembers(p: android.content.SharedPreferences, list: List<Member>) {
@@ -352,8 +397,16 @@ fun writeMembers(p: android.content.SharedPreferences, list: List<Member>) {
 
 fun readHistory(p: android.content.SharedPreferences): List<ScoreEntry> = try {
     val a = JSONArray(p.getString("history", "[]"))
-    (0 until a.length()).map { val o = a.getJSONObject(it)
-        ScoreEntry(o.getString("member"), o.getInt("score"), o.getLong("date"), o.optString("note", "")) }
+    (0 until a.length()).mapNotNull { i ->
+        runCatching {
+            val o = a.getJSONObject(i)
+            val member = o.optString("member", "").trim()
+            val score = o.optInt("score", 0)
+            val date = o.optLong("date", 0L)
+            if (member.isBlank() || score !in 300..900 || date <= 0L) null
+            else ScoreEntry(member, score, date, o.optString("note", ""))
+        }.getOrNull()
+    }
 } catch (_: Exception) { emptyList() }
 
 fun writeHistory(p: android.content.SharedPreferences, list: List<ScoreEntry>) {
@@ -365,8 +418,18 @@ fun writeHistory(p: android.content.SharedPreferences, list: List<ScoreEntry>) {
 
 fun readLoans(p: android.content.SharedPreferences): List<Loan> = try {
     val a = JSONArray(p.getString("loans", "[]"))
-    (0 until a.length()).map { val o = a.getJSONObject(it)
-        Loan(o.getString("member"), o.getString("lender"), o.getDouble("balance"), o.getDouble("emi")) }
+    (0 until a.length()).mapNotNull { i ->
+        runCatching {
+            val o = a.getJSONObject(i)
+            val member = o.optString("member", "").trim()
+            val lender = o.optString("lender", "").trim()
+            val balance = o.optDouble("balance", Double.NaN)
+            val emi = o.optDouble("emi", Double.NaN)
+            if (member.isBlank() || lender.isBlank() || !balance.isFinite() || !emi.isFinite()
+                || balance < 0 || emi < 0) null
+            else Loan(member, lender, balance, emi)
+        }.getOrNull()
+    }
 } catch (_: Exception) { emptyList() }
 fun writeLoans(p: android.content.SharedPreferences, list: List<Loan>) {
     val a = JSONArray()
@@ -376,5 +439,9 @@ fun writeLoans(p: android.content.SharedPreferences, list: List<Loan>) {
 }
 
 fun openCibil(context: Context) {
-    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.cibil.com/freecibilscore")))
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.cibil.com/freecibilscore")))
+    } catch (_: android.content.ActivityNotFoundException) {
+        android.widget.Toast.makeText(context, "Browser app nahi mila.", android.widget.Toast.LENGTH_SHORT).show()
+    }
 }
